@@ -14,7 +14,6 @@ use oxc_ast::{
 #[cfg(feature = "cfg")]
 use oxc_cfg::ControlFlowGraph;
 use oxc_span::{GetSpan, SourceType, Span};
-use rustc_hash::FxHashSet;
 // Re-export flags and ID types
 pub use oxc_syntax::{
     node::{NodeFlags, NodeId},
@@ -91,14 +90,6 @@ pub struct Semantic<'a> {
     jsdoc: JSDocFinder<'a>,
 
     unused_labels: Vec<NodeId>,
-
-    /// References that are read as the object of a member expression in an
-    /// assignment target position. For example, `A` in `A.foo = 1`.
-    ///
-    /// This helps the minifier determine if a symbol's only reads are
-    /// property-write targets, enabling dead code elimination of patterns
-    /// like `function A() {} A.foo = 1;`.
-    member_write_references: FxHashSet<ReferenceId>,
 
     /// Control flow graph. Only present if [`Semantic`] is built with cfg
     /// creation enabled using [`SemanticBuilder::with_cfg`].
@@ -206,16 +197,10 @@ impl<'a> Semantic<'a> {
         &self.unused_labels
     }
 
-    /// References that are read as the object of a member expression in an
-    /// assignment target position (e.g., `A` in `A.foo = 1`).
-    pub fn member_write_references(&self) -> &FxHashSet<ReferenceId> {
-        &self.member_write_references
-    }
-
     /// Returns `true` if the given reference is a member write target
     /// (e.g., `A` in `A.foo = 1`).
     pub fn is_member_write_reference(&self, reference_id: ReferenceId) -> bool {
-        self.member_write_references.contains(&reference_id)
+        self.scoping.is_member_write_reference(reference_id)
     }
 
     /// Control flow graph.

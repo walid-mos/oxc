@@ -94,6 +94,10 @@ pub struct Scoping {
     /// Function or Variable Symbol IDs that are marked with `@__NO_SIDE_EFFECTS__`.
     pub(crate) no_side_effects: FxHashSet<SymbolId>,
 
+    /// References that are read as the object of a member expression in an
+    /// assignment target position (e.g., `A` in `A.foo = 1`).
+    pub(crate) member_write_references: FxHashSet<ReferenceId>,
+
     /* Scope Tree - single allocation for all scope-indexed flat fields */
     scope_table: ScopeTable,
 
@@ -112,6 +116,7 @@ impl Default for Scoping {
             symbol_table: SymbolTable::new(),
             references: IndexVec::new(),
             no_side_effects: FxHashSet::default(),
+            member_write_references: FxHashSet::default(),
             scope_table: ScopeTable::new(),
             cell: ScopingCell::new(Allocator::default(), |allocator| ScopingInner {
                 symbol_names: ArenaVec::new_in(allocator),
@@ -589,6 +594,12 @@ impl Scoping {
     pub fn no_side_effects(&self) -> &FxHashSet<SymbolId> {
         &self.no_side_effects
     }
+
+    /// Returns `true` if the given reference is a member write target
+    /// (e.g., `A` in `A.foo = 1`).
+    pub fn is_member_write_reference(&self, reference_id: ReferenceId) -> bool {
+        self.member_write_references.contains(&reference_id)
+    }
 }
 
 /// Scope Tree Methods
@@ -918,6 +929,7 @@ impl Scoping {
             symbol_table: self.symbol_table.clone(),
             references: self.references.clone(),
             no_side_effects: self.no_side_effects.clone(),
+            member_write_references: self.member_write_references.clone(),
             scope_table: self.scope_table.clone(),
             cell: {
                 let allocator = Allocator::with_capacity(used_bytes);

@@ -5,7 +5,7 @@ use std::{
     mem,
 };
 
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use oxc_allocator::Address;
 use oxc_ast::{AstKind, ast::*};
@@ -87,8 +87,6 @@ pub struct SemanticBuilder<'a> {
     /// Whether the current reference being built is a member write target
     /// (e.g., `A` in `A.foo = 1`).
     current_is_member_write_target: bool,
-    /// Set of references that are member write targets.
-    member_write_references: FxHashSet<ReferenceId>,
     /// Symbols that have been hoisted out of a scope (e.g. `var` declarations hoisted to
     /// the enclosing function scope, or Annex B function declarations hoisted to the var scope).
     /// Keyed by the **original** scope the symbol was declared in, so that future declarations
@@ -155,7 +153,6 @@ impl<'a> SemanticBuilder<'a> {
             current_node_flags: NodeFlags::empty(),
             current_reference_flags: ReferenceFlags::empty(),
             current_is_member_write_target: false,
-            member_write_references: FxHashSet::default(),
             current_scope_id,
             current_function_node_id: NodeId::ROOT,
             module_instance_state_cache: FxHashMap::default(),
@@ -317,7 +314,6 @@ impl<'a> SemanticBuilder<'a> {
             #[cfg(feature = "jsdoc")]
             jsdoc,
             unused_labels: self.unused_labels.labels,
-            member_write_references: self.member_write_references,
             #[cfg(feature = "cfg")]
             cfg: self.cfg.map(ControlFlowGraphBuilder::build),
             #[cfg(not(feature = "cfg"))]
@@ -2588,7 +2584,7 @@ impl<'a> SemanticBuilder<'a> {
         let reference_id = self.declare_reference(ident.name, reference);
         ident.reference_id.set(Some(reference_id));
         if self.current_is_member_write_target {
-            self.member_write_references.insert(reference_id);
+            self.scoping.member_write_references.insert(reference_id);
             self.current_is_member_write_target = false;
         }
     }
