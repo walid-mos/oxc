@@ -79,7 +79,7 @@ input_file: crates/oxc_semantic/tests/fixtures/typescript-eslint/type-declaratio
         "node": "TSModuleDeclaration(T)",
         "references": [
           {
-            "flags": "ReferenceFlags(Read | MemberWriteTarget)",
+            "flags": "ReferenceFlags(Read)",
             "id": 1,
             "name": "T",
             "node_id": 23,

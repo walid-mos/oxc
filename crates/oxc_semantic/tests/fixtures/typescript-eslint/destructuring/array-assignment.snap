@@ -16,7 +16,7 @@ input_file: crates/oxc_semantic/tests/fixtures/typescript-eslint/destructuring/a
         "node": "VariableDeclarator(obj)",
         "references": [
           {
-            "flags": "ReferenceFlags(Read | MemberWriteTarget)",
+            "flags": "ReferenceFlags(Read)",
             "id": 0,
             "name": "obj",
             "node_id": 14,
