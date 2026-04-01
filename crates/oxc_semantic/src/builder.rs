@@ -5,7 +5,7 @@ use std::{
     mem,
 };
 
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use oxc_allocator::Address;
 use oxc_ast::{AstKind, ast::*};
@@ -84,11 +84,6 @@ pub struct SemanticBuilder<'a> {
     pub(crate) current_function_node_id: NodeId,
     pub(crate) module_instance_state_cache: FxHashMap<Address, ModuleInstanceState>,
     current_reference_flags: ReferenceFlags,
-    /// Whether the current reference being built is a member write target
-    /// (e.g., `A` in `A.foo = 1`).
-    current_is_member_write_target: bool,
-    /// Set of references that are member write targets.
-    member_write_references: FxHashSet<ReferenceId>,
     /// Symbols that have been hoisted out of a scope (e.g. `var` declarations hoisted to
     /// the enclosing function scope, or Annex B function declarations hoisted to the var scope).
     /// Keyed by the **original** scope the symbol was declared in, so that future declarations
@@ -154,8 +149,6 @@ impl<'a> SemanticBuilder<'a> {
             current_node_id: NodeId::new(0),
             current_node_flags: NodeFlags::empty(),
             current_reference_flags: ReferenceFlags::empty(),
-            current_is_member_write_target: false,
-            member_write_references: FxHashSet::default(),
             current_scope_id,
             current_function_node_id: NodeId::ROOT,
             module_instance_state_cache: FxHashMap::default(),
@@ -317,7 +310,6 @@ impl<'a> SemanticBuilder<'a> {
             #[cfg(feature = "jsdoc")]
             jsdoc,
             unused_labels: self.unused_labels.labels,
-            member_write_references: self.member_write_references,
             #[cfg(feature = "cfg")]
             cfg: self.cfg.map(ControlFlowGraphBuilder::build),
             #[cfg(not(feature = "cfg"))]
@@ -2024,13 +2016,12 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
     fn visit_member_expression(&mut self, it: &MemberExpression<'a>) {
         // A.B = 1;
         // ^^^ Can't treat A as a Write reference since it's A's property(B) that changes.
-        // For write-only references (simple `=` assignment), mark as member write target
+        // For write-only references (simple `=` assignment), mark as MemberWriteTarget
         // so the minifier can identify property-write-only references.
         // Compound assignments (`+=`) and update expressions (`++`) have Read|Write flags,
         // so `is_write_only()` is false and they correctly skip this branch.
         if self.current_reference_flags.is_write_only() {
-            self.current_reference_flags = ReferenceFlags::Read;
-            self.current_is_member_write_target = true;
+            self.current_reference_flags = ReferenceFlags::Read | ReferenceFlags::MemberWriteTarget;
         } else {
             self.current_reference_flags -= ReferenceFlags::Write;
         }
@@ -2587,10 +2578,6 @@ impl<'a> SemanticBuilder<'a> {
         let reference = Reference::new(self.current_node_id, self.current_scope_id, flags);
         let reference_id = self.declare_reference(ident.name, reference);
         ident.reference_id.set(Some(reference_id));
-        if self.current_is_member_write_target {
-            self.member_write_references.insert(reference_id);
-            self.current_is_member_write_target = false;
-        }
     }
 
     /// Resolve reference flags for the current ast node.
