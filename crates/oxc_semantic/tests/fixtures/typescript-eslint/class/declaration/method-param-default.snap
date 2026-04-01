@@ -43,7 +43,7 @@ input_file: crates/oxc_semantic/tests/fixtures/typescript-eslint/class/declarati
                 "node": "FormalParameter(printerName)",
                 "references": [
                   {
-                    "flags": "ReferenceFlags(Read | MemberWriteTarget)",
+                    "flags": "ReferenceFlags(Read)",
                     "id": 1,
                     "name": "printerName",
                     "node_id": 34,

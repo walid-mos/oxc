@@ -4169,7 +4169,7 @@ Reference symbol mismatch for "templa":
 after transform: SymbolId(0) "templa"
 rebuilt        : <None>
 Unresolved references mismatch:
-after transform: ["IElementController", "mvc", "require"]
+after transform: ["IElementController", "require"]
 rebuilt        : ["require", "templa"]
 
 semantic Error: tasks/coverage/typescript/tests/cases/compiler/declFileImportChainInExportAssignment.ts
@@ -11507,9 +11507,6 @@ semantic Error: tasks/coverage/typescript/tests/cases/compiler/moduleOuterQualif
 Bindings mismatch:
 after transform: ScopeId(0): ["outer"]
 rebuilt        : ScopeId(0): []
-Unresolved references mismatch:
-after transform: ["outer"]
-rebuilt        : []
 
 semantic Error: tasks/coverage/typescript/tests/cases/compiler/modulePreserve2.ts
 Bindings mismatch:
@@ -11884,7 +11881,7 @@ Bindings mismatch:
 after transform: ScopeId(0): ["http", "tls"]
 rebuilt        : ScopeId(0): []
 Unresolved references mismatch:
-after transform: ["Partial", "http", "tls"]
+after transform: ["Partial"]
 rebuilt        : []
 
 semantic Error: tasks/coverage/typescript/tests/cases/compiler/multipleInferenceContexts.ts
@@ -13645,9 +13642,6 @@ semantic Error: tasks/coverage/typescript/tests/cases/compiler/privacyInterfaceE
 Bindings mismatch:
 after transform: ScopeId(0): ["privateModule", "publicModule"]
 rebuilt        : ScopeId(0): []
-Unresolved references mismatch:
-after transform: ["privateModule"]
-rebuilt        : []
 
 semantic Error: tasks/coverage/typescript/tests/cases/compiler/privacyLocalInternalReferenceImportWithExport.ts
 Namespaces exporting non-const are not supported by Oxc. Change to const or see: https://oxc.rs/docs/guide/usage/transformer/typescript.html#partial-namespace-support
