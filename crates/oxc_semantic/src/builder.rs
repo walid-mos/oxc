@@ -2033,6 +2033,12 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
             MemberExpression::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             MemberExpression::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
         }
+
+        // Clear any unconsumed flags to prevent leaking to sibling AST nodes.
+        // When the object is `this` or a call expression (not an IdentifierReference),
+        // the flags set above aren't consumed by `resolve_reference_usages`,
+        // and would incorrectly propagate to the next visited identifier (e.g., the RHS).
+        self.current_reference_flags = ReferenceFlags::empty();
     }
 
     fn visit_simple_assignment_target(&mut self, it: &SimpleAssignmentTarget<'a>) {
