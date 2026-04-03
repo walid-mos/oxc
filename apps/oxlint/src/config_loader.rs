@@ -16,6 +16,8 @@ use crate::{
     DEFAULT_JSONC_OXLINTRC_NAME, DEFAULT_OXLINTRC_NAME, DEFAULT_TS_OXLINTRC_NAME, VITE_CONFIG_NAME,
 };
 
+const NODE_MODULES_DIR: &str = "node_modules";
+
 #[cfg(feature = "napi")]
 use crate::js_config;
 use crate::js_config::JsConfigResult;
@@ -158,7 +160,7 @@ impl ignore::ParallelVisitor for ConfigWalkCollector {
             Ok(entry) => {
                 // Skip node_modules directories entirely - they are not part of the project
                 if entry.file_type().is_some_and(|ft| ft.is_dir())
-                    && entry.file_name() == "node_modules"
+                    && entry.file_name() == NODE_MODULES_DIR
                 {
                     return ignore::WalkState::Skip;
                 }
