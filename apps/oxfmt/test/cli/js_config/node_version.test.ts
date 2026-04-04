@@ -15,17 +15,15 @@ describe("node_version", () => {
   });
 
   it("adds a node version hint for unsupported TypeScript module loading", () => {
-    const err = new TypeError('Unknown file extension ".ts" for /tmp/oxfmt.config.ts') as TypeError & {
+    const err = new TypeError(
+      'Unknown file extension ".ts" for /tmp/oxfmt.config.ts',
+    ) as TypeError & {
       code?: string;
     };
     err.code = "ERR_UNKNOWN_FILE_EXTENSION";
 
     expect(
-      getUnsupportedTypeScriptModuleLoadHintForError(
-        err,
-        "/tmp/oxfmt.config.ts",
-        "v22.11.0",
-      ),
+      getUnsupportedTypeScriptModuleLoadHintForError(err, "/tmp/oxfmt.config.ts", "v22.11.0"),
     ).toBe(
       `TypeError: Unknown file extension ".ts" for /tmp/oxfmt.config.ts\n\nTypeScript config files require Node.js ${NODE_TYPESCRIPT_SUPPORT_RANGE}.\nDetected Node.js v22.11.0.\nPlease upgrade Node.js or use a JSON config file instead.`,
     );
@@ -36,6 +34,8 @@ describe("node_version", () => {
     expect(getUnsupportedTypeScriptModuleLoadHintForError(err, "/tmp/oxfmt.config.ts")).toBeNull();
 
     const unknownExtension = new TypeError('Unknown file extension ".ts"');
-    expect(getUnsupportedTypeScriptModuleLoadHintForError(unknownExtension, "/tmp/oxfmt.config.js")).toBeNull();
+    expect(
+      getUnsupportedTypeScriptModuleLoadHintForError(unknownExtension, "/tmp/oxfmt.config.js"),
+    ).toBeNull();
   });
 });
