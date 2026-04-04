@@ -42,10 +42,12 @@ impl DiscoveredConfig {
 /// Used by CLI where we have specific files to lint and need to find configs
 /// that apply to them.
 ///
-/// Example: For files `/project/src/foo.js` and `/project/src/bar/baz.js`:
-/// - Checks `/project/src/bar/`, `/project/src/`, `/project/`, `/`
+/// Example: For files `/project/src/foo.js` and `/project/src/bar/baz.js` where `/project` is the cwd:
+/// - Checks `/project/src/bar/`, `/project/src/`,
+/// - Skips checking `/project` and `/` since it's the workspace root (base config directory)
 /// - Returns paths to any `.oxlintrc.json`, `.oxlintrc.jsonc`, or `oxlint.config.ts` files found
 pub fn discover_configs_in_ancestors<P: AsRef<Path>>(
+    cwd: &Path,
     files: &[P],
     base_config_path: &Path,
 ) -> impl IntoIterator<Item = DiscoveredConfig> {
@@ -57,6 +59,10 @@ pub fn discover_configs_in_ancestors<P: AsRef<Path>>(
         // Start from the file's parent directory and walk up the tree
         let mut current = path.parent();
         while let Some(dir) = current {
+            if dir == cwd {
+                // Stop if we've reached the workspace root (base config directory)
+                break;
+            }
             // Stop if we've already checked this directory (and its ancestors)
             let inserted = visited_dirs.insert(dir.to_path_buf());
             if !inserted {
@@ -665,7 +671,7 @@ impl<'a> ConfigLoader<'a> {
         // Discover config files by walking up from each file's directory
         let config_paths: Vec<_> =
             paths.iter().map(|p| Path::new(p.as_ref()).to_path_buf()).collect();
-        let discovered_configs = discover_configs_in_ancestors(&config_paths, &oxlintrc.path);
+        let discovered_configs = discover_configs_in_ancestors(cwd, &config_paths, &oxlintrc.path);
 
         let (configs, errors) = self.load_many(discovered_configs, Some(cwd));
 
